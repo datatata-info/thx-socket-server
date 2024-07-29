@@ -1,1 +1,2 @@
 - performance https://socket.io/docs/v4/performance-tuning/
+- save server state for possible shutdown (rooms –> )
