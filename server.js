@@ -116,22 +116,22 @@ io.on('connection', (socket) => {
             user: user,
             socket: socket
         };
-        console.log('user logged in', user);
+        console.log(`user logged in app ${appName}`, user);
     })
 
     socket.on('disconnect', (reason) => {
         console.log(socket.id, 'disconnect');
-        const userObject = findUserOfAppBySocketId(appName, socket.id);
-        if (userObject) {
-            for (const roomId in ROOMS[appName]) {
-                const room = ROOMS[appName][roomId];
-                if (room.admin === userObject.user.id) {
-                    // admin of this room have been disconnected
-                    // close room
-                    closeRoom(appName, room.id, room.config.public);
-                }
-            }
-        }        
+        // const userObject = findUserOfAppBySocketId(appName, socket.id);
+        // if (userObject) {
+        //     for (const roomId in ROOMS[appName]) {
+        //         const room = ROOMS[appName][roomId];
+        //         if (room.admin === userObject.user.id) {
+        //             // admin of this room have been disconnected
+        //             // close room
+        //             closeRoom(appName, room.id, room.config.public);
+        //         }
+        //     }
+        // }        
     });
 
     socket.on('disconnecting', () => {
@@ -270,6 +270,7 @@ io.on('connection', (socket) => {
     // ban/reject user (admin)
     // send message
     socket.on('send_message', (roomId, message) => {
+        // console.log('send_message to app', appName);
         // console.log('send_message to roomId', roomId);
         // console.log('on send_message', message);
         socket.to(roomId).emit('message', message, roomId);
