@@ -1,13 +1,26 @@
-// import 'dotenv/config';
-// import { createServer } from 'http';
-// import { createServer as createSecureServer } from 'https';
-// import { Server } from 'socket.io';
-// import fs from 'fs';
 require('dotenv').config();
 const { createServer } = require('http');
 const createSecureServer = require('https').createServer;
 const { Server } = require('socket.io');
 const fs = require('fs');
+// implement webpush (see: https://dev.to/ajayupreti/how-to-use-push-notifications-in-angular-2cll)
+const webpush = require('web-push');
+// Push API - this is an API that allows messages to be pushed from a server to a browser (even when the site isn't focused or the browser is closed)
+
+class Subscribtion {
+    endpoint = '';
+    expirationTime = '';
+    keys = {
+        auth: '',
+        p256dh: ''
+    };
+    constructor(obj){
+        this.endpoint = obj.endpoint;
+        this.expirationTime = obj.expirationTime;
+        this.keys.auth = obj.keys.auth;
+        this.keys.p256dh = obj.keys.p256dh;
+    }
+}
 
 let httpServer;
 const PORT = process.env.PORT;
@@ -27,7 +40,7 @@ if (process.env.SSL === 'true') {
 
 const io = new Server(httpServer, {
     cors: {
-        origin: '*'
+        origin: process.env.CORS 
     }
 });
 
@@ -66,6 +79,16 @@ function closeRoom(appName, roomId, publicRoom = false) {
     io.in(roomId).socketsLeave(roomId);
     if (publicRoom) io.in(appName).emit('public_room_closed', roomId); // send to app 
     deleteRoom(appName, roomId);
+}
+
+function sendNotificationToSubscriber(subscription, notificationPayload) {
+    webpush.sendNotification(subscription, JSON.stringify(notificationPayload))
+      .then(() => {
+        console.log('Push notification sent successfully');
+      })
+      .catch((error) => {
+        console.error('Error sending push notification:', error);
+      });
 }
 
 function findUserBySocketId(socketId) {
@@ -147,9 +170,10 @@ io.on('connection', (socket) => {
     // interface RoomConfig { roomName: string, password: string, timer: number, public: boolean}
     // interface Room { id: string, name: string, config: RoomConfig, admin: User.nickname, public: boolean }
     // interface User { id: string, nickname: string }
-    socket.on('create_room', (room, callback) => {
+    socket.on('create_room', (room, swPushSubscription, callback) => {
         // console.log('create_room', room);
         // console.log('create_room user', room.admin);
+        console.log('🛎️ webpush subscription ---->', swPushSubscription);
         socket.join(room.id);
         addRoom(appName, room);
         console.log('create_room', room);
@@ -200,7 +224,9 @@ io.on('connection', (socket) => {
         }
     });
     // join room
-    socket.on('join_room', (roomId, user, callback) => {
+    socket.on('join_room', (roomId, user, swPushSubscription, callback) => {
+        // create webpush subscribption
+        console.log('🛎️ webpush subscription ---->', swPushSubscription);
         // if room exist, join
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
