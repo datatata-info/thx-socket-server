@@ -124,7 +124,7 @@ io.of('/').adapter.on('join-room', (room, id) => {
 io.of('/').adapter.on('leave-room', (room, id) => {
     console.log(`🦧 socket ${id} has leaved room ${room}`);
     // FIND user by socket id
-    // io.to(room).emit('user_leaved_room', id)
+    // io.to(room).emit('user_left_room', id)
 });
 
 io.on('connection', (socket) => {
@@ -133,7 +133,7 @@ io.on('connection', (socket) => {
     if (appName) socket.join(appName); // join room for app
     // console.log('rooms', socket.rooms);
 
-    socket.on('login', (user) => {
+    socket.on('login', (user, pushSubscribtion = null) => {
         if (!USERS[appName]) USERS[appName] = {};
         if (user.id) USERS[appName][user.id] = {
             user: user,
@@ -170,10 +170,8 @@ io.on('connection', (socket) => {
     // interface RoomConfig { roomName: string, password: string, timer: number, public: boolean}
     // interface Room { id: string, name: string, config: RoomConfig, admin: User.nickname, public: boolean }
     // interface User { id: string, nickname: string }
-    socket.on('create_room', (room, swPushSubscription, callback) => {
+    socket.on('create_room', (room, callback) => {
         // console.log('create_room', room);
-        // console.log('create_room user', room.admin);
-        console.log('🛎️ webpush subscription ---->', swPushSubscription);
         socket.join(room.id);
         addRoom(appName, room);
         console.log('create_room', room);
@@ -224,9 +222,7 @@ io.on('connection', (socket) => {
         }
     });
     // join room
-    socket.on('join_room', (roomId, user, swPushSubscription, callback) => {
-        // create webpush subscribption
-        console.log('🛎️ webpush subscription ---->', swPushSubscription);
+    socket.on('join_room', (roomId, user, callback) => {
         // if room exist, join
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
@@ -256,8 +252,8 @@ io.on('connection', (socket) => {
             //     // socket.leave(roomId);
             //     closeRoom(appName, roomId);
             // }
-            // else emit user_leaved_room
-            socket.to(roomId).emit('user_leaved_room', userId);
+            // else emit user_left_room
+            socket.to(roomId).emit('user_left_room', userId);
             if (room.config.public) {
                 console.log('... leaving public room', room);
                 io.in(appName).emit('public_room_updated', room)
