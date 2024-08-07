@@ -134,10 +134,12 @@ io.on('connection', (socket) => {
     // console.log('rooms', socket.rooms);
 
     socket.on('login', (user, pushSubscribtion = null) => {
+        console.log('🌸 notification subscribtion', pushSubscribtion);
         if (!USERS[appName]) USERS[appName] = {};
         if (user.id) USERS[appName][user.id] = {
             user: user,
-            socket: socket
+            socket: socket,
+            push: pushSubscribtion
         };
         console.log(`user logged in app ${appName}`, user);
     })
