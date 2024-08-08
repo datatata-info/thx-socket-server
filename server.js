@@ -65,6 +65,10 @@ function getUser(appName, id) {
     return null;
 }
 
+function deleteUser(appName, id) {
+    if (USERS[appName][id]) delete USERS[appName][id];
+}
+
 function roomExist(appName, id) {
     if (ROOMS[appName] && ROOMS[appName][id]) return true;
     return false;
@@ -122,7 +126,7 @@ io.of('/').adapter.on('join-room', (room, id) => {
 });
 
 io.of('/').adapter.on('leave-room', (room, id) => {
-    console.log(`🦧 socket ${id} has leaved room ${room}`);
+    console.log(`🦧 socket ${id} has left room ${room}`);
     // FIND user by socket id
     // io.to(room).emit('user_left_room', id)
 });
@@ -145,8 +149,19 @@ io.on('connection', (socket) => {
     })
 
     socket.on('disconnect', (reason) => {
-        console.log(socket.id, 'disconnect');
-        // const userObject = findUserOfAppBySocketId(appName, socket.id);
+        console.log(socket.id, `👋 disconnect for reason ${reason}`);
+        const userObject = findUserOfAppBySocketId(appName, socket.id);
+        if (userObject) {
+            console.log('👋 disconnecting user', userObject.user);
+        } else {
+            console.log('👋 no user with socket', socket.id)
+        }
+        
+        // remove disconnected user
+        // if (userObject) {
+        //     deleteUser(appName, userObject.user.id);
+        // }
+
         // if (userObject) {
         //     for (const roomId in ROOMS[appName]) {
         //         const room = ROOMS[appName][roomId];
@@ -161,7 +176,13 @@ io.on('connection', (socket) => {
 
     socket.on('disconnecting', () => {
         /// 
-        console.log(socket.id, 'disconnecting');
+        console.log(socket.id, '👋 disconnecting');
+        const userObject = findUserOfAppBySocketId(appName, socket.id);
+        if (userObject) {
+            console.log('👋 disconnecting user', userObject.user);
+        } else {
+            console.log('👋 no user with socket', socket.id)
+        }
     })
 
     socket.on('reconnect', () => { 
@@ -210,6 +231,7 @@ io.on('connection', (socket) => {
             })
         }
     });
+    // check if room exist
     socket.on('room_exist', (roomId, callback) => {
         if (roomExist(appName, roomId)) {
             callback({
@@ -244,6 +266,7 @@ io.on('connection', (socket) => {
             })
         }     
     });
+    // leave room
     socket.on('leave_room', (roomId, userId) => {
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
