@@ -152,7 +152,7 @@ io.on('connection', (socket) => {
         console.log(socket.id, `👋 disconnect for reason ${reason}`);
         const userObject = findUserOfAppBySocketId(appName, socket.id);
         if (userObject) {
-            console.log('👋 disconnecting user', userObject.user);
+            console.log('👋 disconnect user', userObject.user);
         } else {
             console.log('👋 no user with socket', socket.id)
         }
