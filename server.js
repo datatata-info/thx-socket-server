@@ -300,27 +300,33 @@ io.on('connection', (socket) => {
     // exit room
     // thx handshake
     // request handshake -> user want to join room and send publicKey
-    socket.on('request_handshake', (roomId, userId, publicKey) => {
-        console.log('request_handshake roomId', roomId);
+    socket.on('handshake', (roomId, userId, publicKeyPem) => {
+        console.log('handshake roomId', roomId);
         // sending publicKey to other users
-        socket.to(roomId).emit('handshake', roomId, userId, publicKey);
+        socket.broadcast.to(roomId).emit('handshake', roomId, userId, publicKeyPem);
     });
-    // answer to request_handshake, every user in room send accept
-    socket.on('response_handshake', (roomId, toUserId, fromUserId, publicKey) => {
+
+    socket.on('accept_handshake', (roomId, toUserId, fromUserId, publicKeyPem) => {
         const userObject = getUser(appName, toUserId);
         if (userObject) {
-            console.log('response_handshake to', userObject.user.nickname);
-            socket.to(userObject.socket.id).emit('accept_handshake', roomId, fromUserId, publicKey);
+            socket.to(userObject.socket.id).emit('accept_handshake', roomId, fromUserId, publicKeyPem);
         }
-        
     });
+
     // ban/reject user (admin)
     // send message
     socket.on('send_message', (roomId, message) => {
         // console.log('send_message to app', appName);
         // console.log('send_message to roomId', roomId);
         // console.log('on send_message', message);
-        socket.to(roomId).emit('message', message, roomId);
-    })
+        socket.broadcast.to(roomId).emit('message', message, roomId);
+    });
+    // 
+    socket.on('send_private_message', (roomId, userId, message) => {
+        const userObject = getUser(appName, userId);
+        if (userObject) {
+            socket.to(userObject.socket.id).emit('message', message, roomId);
+        }
+    });
     // socket.on('')
 });
