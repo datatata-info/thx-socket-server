@@ -135,18 +135,72 @@ io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
     const appName = socket.handshake.query.appName;
     if (appName) socket.join(appName); // join room for app
-    // console.log('rooms', socket.rooms);
 
-    socket.on('login', (user, pushSubscribtion = null) => {
-        console.log('🌸 notification subscribtion', pushSubscribtion);
-        if (!USERS[appName]) USERS[appName] = {};
-        if (user.id) USERS[appName][user.id] = {
-            user: user,
-            socket: socket,
-            push: pushSubscribtion
-        };
+    // login to app
+    socket.on('login', (user) => {
+        // console.log('🌸 notification subscribtion', pushSubscribtion);
+        if (!USERS[appName]) USERS[appName] = {}; // no users in app
+        // find if user exist
+        const userObject = getUser(appName, user.id);
+        if (userObject) { // user exist, reconnect with new socket
+            userObject.socket = socket;
+            console.log('...existing user', user);
+        } else { // new user
+            if (user.id) {
+                USERS[appName][user.id] = {
+                    user: user,
+                    socket: socket,
+                    push: null
+                };
+            }
+        }
         console.log(`user logged in app ${appName}`, user);
+    });
+
+    socket.on('logout', (userId) => {
+        const userObject = getUser(appName, userId);
+        if (userObject) deleteUser(appName, userId);
     })
+
+    socket.on('has_push', (userId, callback = () => {}) => {
+        const userObject = getUser(appName, userId);
+        if (userObject) {
+            if (userObject.push) {
+                callback({
+                    success: true,
+                    message: 'User has push subscribed.',
+                    push: true
+                })
+            } else { // maybe push can be true/false(denied) and null(not set)
+                callback({
+                    success: true,
+                    message: 'User has not push subscribed.',
+                    push: false
+                })
+            }
+        } else {
+            callback({
+                success: false,
+                message: `No user with id ${userId} logged in.`
+            });
+        }
+    });
+
+    socket.on('subscribe_push', (user, push, callback = () => {}) => {
+        const userObject = getUser(appName, user.id);
+        if (userObject) {
+            userObject.push = push;
+            callback({
+                success: true,
+                message: 'PushSubscribtion successfully set.'
+            })
+        } else {
+            callback({
+                success: false,
+                message: `No user with id ${user.id} logged in.`
+            })
+        }
+    });
 
     socket.on('disconnect', (reason) => {
         console.log(socket.id, `👋 disconnect for reason ${reason}`);
@@ -193,7 +247,7 @@ io.on('connection', (socket) => {
     // interface RoomConfig { roomName: string, password: string, timer: number, public: boolean}
     // interface Room { id: string, name: string, config: RoomConfig, admin: User.nickname, public: boolean }
     // interface User { id: string, nickname: string }
-    socket.on('create_room', (room, callback) => {
+    socket.on('create_room', (room, callback = () => {}) => {
         // console.log('create_room', room);
         socket.join(room.id);
         addRoom(appName, room);
@@ -207,7 +261,7 @@ io.on('connection', (socket) => {
         });
     });
     // delete room
-    socket.on('close_room', (roomId, userId, callback) => {
+    socket.on('close_room', (roomId, userId, callback = () => {}) => {
         console.log('close_room', roomId)
         const room = getRoom(appName, roomId);
         // only admin can delete room
@@ -232,7 +286,7 @@ io.on('connection', (socket) => {
         }
     });
     // check if room exist
-    socket.on('room_exist', (roomId, callback) => {
+    socket.on('room_exist', (roomId, callback = () => {}) => {
         if (roomExist(appName, roomId)) {
             callback({
                 success: true,
@@ -246,7 +300,7 @@ io.on('connection', (socket) => {
         }
     });
     // join room
-    socket.on('join_room', (roomId, user, callback) => {
+    socket.on('join_room', (roomId, user, callback = () => {}) => {
         // if room exist, join
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
