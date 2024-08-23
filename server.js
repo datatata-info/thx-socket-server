@@ -123,7 +123,7 @@ function sendNotificationToSubscriber(subscription, notificationPayload) {
     // technically, the audience doesn't change between calls, so this can be cached in a non-minimal example
     const vapidHeaders = webpush.getVapidHeaders(
     audience,
-      'mailto: xvjavurek@vutbr.cz',
+      `mailto:${process.env.MAILTO}`,
       process.env.VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY,
       'aes128gcm'
