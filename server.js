@@ -65,6 +65,38 @@ function getUser(appName, id) {
     return null;
 }
 
+function addRoomToUser(appName, roomId, userId) {
+    const userObject = getUser(appName, userId);
+    if (userObject) {
+        if (!userObject.rooms) userObject.rooms = [];
+        userObject.rooms.push(roomId);
+    }
+}
+
+function removeRoomFromUser(appName, roomId, userId) {
+    const userObject = getUser(appName, userId);
+    if (userObject) {
+        if (userObject.rooms) {
+            for (let i = 0; i < userObject.rooms.length; i++) {
+                const id = userObject.rooms[i];
+                if (id === roomId) userObject.rooms.splice(i, 1);
+            }
+        }
+    }
+}
+
+function getUsersInRoom(appName, roomId) {
+    const result = [];
+    const users = USERS[appName];
+    for (const userId in users) {
+        const user = users[userId];
+        if (user.rooms && user.rooms.length && user.rooms.includes(roomId)) {
+            result.push(user);
+        }
+    }
+    return result;
+}
+
 function deleteUser(appName, id) {
     if (USERS[appName][id]) delete USERS[appName][id];
 }
@@ -185,7 +217,7 @@ io.on('connection', (socket) => {
             });
         }
     });
-
+    // TODO: sending push notifications on message
     socket.on('subscribe_push', (user, push, callback = () => {}) => {
         const userObject = getUser(appName, user.id);
         if (userObject) {
@@ -305,6 +337,7 @@ io.on('connection', (socket) => {
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
             socket.join(room.id);
+            addRoomToUser(appName, room.id, user.id);
             room.size = io.sockets.adapter.rooms.get(roomId) ? io.sockets.adapter.rooms.get(roomId).size : 0; // update room size
             callback({
                 success: true,
@@ -325,6 +358,7 @@ io.on('connection', (socket) => {
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
             socket.leave(roomId);
+            removeRoomFromUser(appName, roomId, userId);
             room.size = io.sockets.adapter.rooms.get(roomId) ? io.sockets.adapter.rooms.get(roomId).size : 0; // update room size
             // if user is admin -> close
             // if (room.admin === userId) {
@@ -369,10 +403,25 @@ io.on('connection', (socket) => {
 
     // ban/reject user (admin)
     // send message
-    socket.on('send_message', (roomId, message) => {
-        // console.log('send_message to app', appName);
-        // console.log('send_message to roomId', roomId);
-        // console.log('on send_message', message);
+    // TODO: sending push notifications on message
+    socket.on('send_message', async (roomId, message) => {
+        const sockets = await io.in(roomId).fetchSockets();
+        console.log(`send_message roomId: ${roomId} clients`, clients);
+        /// NOTE: this will not probably send the notification to users which has the app closed (socket disconnected :/),
+        // it should be probably necessary to save room ids to user and decide by that to send notification
+        // ADD / REMOVE room in userObject IMPLEMENTED ;)
+        const usersInRoom = getUsersInRoom(appName, roomId);
+        for (const userObject of usersInRoom) {
+            if (userObject.push) {
+                console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
+                sendNotificationToSubscriber(userObject.push, JSON.stringify({
+                    icon: '.assets/icons/icon-96x96.png',
+                    title: '@thx/chat',
+                    body: 'New message',
+                    clickUrl: `https://thx.ffa.vutbr.cz/en-US/chat/${roomId}` // TODO: solve link to lang, correct server, pwa app
+                }));
+            }
+        }
         socket.broadcast.to(roomId).emit('message', message, roomId);
     });
     // 
