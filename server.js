@@ -405,8 +405,8 @@ io.on('connection', (socket) => {
     // send message
     // TODO: sending push notifications on message
     socket.on('send_message', async (roomId, message) => {
-        const sockets = await io.in(roomId).fetchSockets();
-        console.log(`send_message roomId: ${roomId} clients`, clients);
+        // const sockets = await io.in(roomId).fetchSockets();
+        // console.log(`send_message roomId: ${roomId} clients`, clients);
         /// NOTE: this will not probably send the notification to users which has the app closed (socket disconnected :/),
         // it should be probably necessary to save room ids to user and decide by that to send notification
         // ADD / REMOVE room in userObject IMPLEMENTED ;)
