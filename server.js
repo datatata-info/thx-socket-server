@@ -118,7 +118,19 @@ function closeRoom(appName, roomId, publicRoom = false) {
 }
 
 function sendNotificationToSubscriber(subscription, notificationPayload) {
-    webpush.sendNotification(subscription, JSON.stringify(notificationPayload))
+    const parsedUrl = new URL(subscription.endpoint);
+    const audience = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
+    // technically, the audience doesn't change between calls, so this can be cached in a non-minimal example
+    const vapidHeaders = webpush.getVapidHeaders(
+    audience,
+      'mailto: xvjavurek@vutbr.cz',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY,
+      'aes128gcm'
+    );
+    webpush.sendNotification(subscription, JSON.stringify(notificationPayload), {
+        headers: vapidHeaders
+    })
       .then(() => {
         console.log('Push notification sent successfully');
       })
@@ -414,12 +426,12 @@ io.on('connection', (socket) => {
         for (const userObject of usersInRoom) {
             if (userObject.push) {
                 console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
-                sendNotificationToSubscriber(userObject.push, JSON.stringify({
+                sendNotificationToSubscriber(userObject.push, {
                     icon: '.assets/icons/icon-96x96.png',
                     title: '@thx/chat',
                     body: 'New message',
                     clickUrl: `https://thx.ffa.vutbr.cz/en-US/chat/${roomId}` // TODO: solve link to lang, correct server, pwa app
-                }));
+                });
             }
         }
         socket.broadcast.to(roomId).emit('message', message, roomId);
