@@ -294,6 +294,11 @@ io.on('connection', (socket) => {
     socket.on('create_room', (room, callback = () => {}) => {
         // console.log('create_room', room);
         socket.join(room.id);
+        const userObject = findUserBySocketId(socket.id);
+        if (userObject) {
+            addRoomToUser(appName, room.id, userObject.user.id);
+        }
+        
         addRoom(appName, room);
         console.log('create_room', room);
         if (room.config.public) socket.to(appName).emit('room_created', room);
@@ -308,6 +313,10 @@ io.on('connection', (socket) => {
     socket.on('close_room', (roomId, userId, callback = () => {}) => {
         console.log('close_room', roomId)
         const room = getRoom(appName, roomId);
+        // remove closed room from every user in app
+        for (const userObject in USERS[appName]) {
+            removeRoomFromUser(appName, roomId, userObject.user.id);
+        }
         // only admin can delete room
         // if room.admin === user.id -> deleteRoom(roomId)
         if (room && room.admin === userId) { 
