@@ -316,7 +316,6 @@ io.on('connection', (socket) => {
         const room = getRoom(appName, roomId);
         // remove closed room from every user in app
         for (const userId in USERS[appName]) {
-            // console.log('-----------> userId', userId);
             const userObject = USERS[appName][userId];
             removeRoomFromUser(appName, roomId, userObject.user.id);
         }
@@ -325,10 +324,6 @@ io.on('connection', (socket) => {
         if (room && room.admin === userId) { 
             // if (room.config.public) socket.to(appName).emit('room_closed', roomId);
             closeRoom(appName, roomId, room.config.public);
-            // deleteRoom(appName, roomId);
-            // // socket.leave(roomId);
-            // io.in(roomId).emit('room_closed', roomId);
-            // io.in(roomId).socketsLeave(roomId); // all the users in room leave
             callback({
                 success: true,
                 message: 'Room closed.',
