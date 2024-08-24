@@ -158,6 +158,39 @@ function findUserOfAppBySocketId(appName, socketId) {
     return null;
 }
 
+function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
+    const senderUserObject = findUserBySocketId(excludeSocket.id);
+    const usersInRoom = getUsersInRoom(appName, roomId);
+        for (const userObject of usersInRoom) {
+            if (userObject.push) {
+                if (senderUserObject && senderUserObject.user.id === userObject.user.id) {
+                    // do not send notification to sender
+                    console.log('DO NOT SEND NOTIFICATION TO SENDER');
+                } else {
+                    console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
+                    sendNotificationToSubscriber(userObject.push, {
+                        icon: '.assets/icons/icon-96x96.png',
+                        title: '@thx/chat', // more general
+                        body: 'New message',
+                        actions: [
+                            { action: 'goto', title: 'OK' }
+                        ],
+                        data: {
+                            onActionClick: {
+                                default: { operation: 'openWindow' },
+                                goto: {
+                                    operation: 'navigateLastFocusedOrOpen',
+                                    url: `/en-US/chat/${roomId}` // TODO: solve more general for specific app
+                                }
+                            }
+                        }
+                    });
+                }
+                
+            }
+        }
+}
+
 io.of('/').adapter.on('create-room', (room) => {
     console.log(`🦧 room ${room} was created`);
 });
@@ -179,6 +212,7 @@ io.of('/').adapter.on('leave-room', (room, id) => {
 io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
     const appName = socket.handshake.query.appName;
+    // TODO: appTitle (eg. @thx/chat), appDomain(?), appIconLink, ...
     if (appName) socket.join(appName); // join room for app
 
     // login to app
@@ -424,35 +458,7 @@ io.on('connection', (socket) => {
     // send message
     // TODO: sending push notifications on message
     socket.on('send_message', async (roomId, message) => {
-        // const sockets = await io.in(roomId).fetchSockets();
-        // console.log(`send_message roomId: ${roomId} clients`, clients);
-        /// NOTE: this will not probably send the notification to users which has the app closed (socket disconnected :/),
-        // it should be probably necessary to save room ids to user and decide by that to send notification
-        // ADD / REMOVE room in userObject IMPLEMENTED ;)
-        const usersInRoom = getUsersInRoom(appName, roomId);
-        for (const userObject of usersInRoom) {
-            if (userObject.push) {
-                console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
-                sendNotificationToSubscriber(userObject.push, {
-                    icon: '.assets/icons/icon-96x96.png',
-                    title: '@thx/chat',
-                    body: 'New message',
-                    actions: [
-                        { action: 'goto', title: 'OK' }
-                    ],
-                    data: {
-                        onActionClick: {
-                            default: { operation: 'openWindow' },
-                            goto: {
-                                operation: 'navigateLastFocusedOrOpen',
-                                url: `/en-US/chat/${roomId}` // TODO: solve more general for specific app
-                            }
-                        }
-                    }
-                    // clickUrl: `https://thx.ffa.vutbr.cz/en-US/chat/${roomId}` // TODO: solve link to lang, correct server, pwa app
-                });
-            }
-        }
+        broadcastNewMessageNotifications(appName, roomId, socket);
         socket.broadcast.to(roomId).emit('message', message, roomId);
     });
     // 
