@@ -315,7 +315,9 @@ io.on('connection', (socket) => {
         console.log('close_room', roomId)
         const room = getRoom(appName, roomId);
         // remove closed room from every user in app
-        for (const userObject in USERS[appName]) {
+        for (const userId in USERS[appName]) {
+            // console.log('-----------> userId', userId);
+            const userObject = USERS[appName][userId];
             removeRoomFromUser(appName, roomId, userObject.user.id);
         }
         // only admin can delete room
