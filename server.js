@@ -129,7 +129,8 @@ function sendNotificationToSubscriber(subscription, notificationPayload) {
       'aes128gcm'
     );
     webpush.sendNotification(subscription, JSON.stringify(notificationPayload), {
-        headers: vapidHeaders
+        headers: vapidHeaders,
+        TTL: 60 // default for 60s
     })
       .then(() => {
         console.log('Push notification sent successfully');
@@ -439,7 +440,19 @@ io.on('connection', (socket) => {
                     icon: '.assets/icons/icon-96x96.png',
                     title: '@thx/chat',
                     body: 'New message',
-                    clickUrl: `https://thx.ffa.vutbr.cz/en-US/chat/${roomId}` // TODO: solve link to lang, correct server, pwa app
+                    actions: [
+                        { action: 'goto', title: 'OK' }
+                    ],
+                    data: {
+                        onActionClick: {
+                            default: { operation: 'openWindow' },
+                            goto: {
+                                operation: 'navigateLastFocusedOrOpen',
+                                url: `/en-US/chat/${roomId}` // TODO: solve more general for specific app
+                            }
+                        }
+                    }
+                    // clickUrl: `https://thx.ffa.vutbr.cz/en-US/chat/${roomId}` // TODO: solve link to lang, correct server, pwa app
                 });
             }
         }
