@@ -128,7 +128,9 @@ function sendNotificationToSubscriber(subscription, notificationPayload) {
       process.env.VAPID_PRIVATE_KEY,
       'aes128gcm'
     );
-    webpush.sendNotification(subscription, JSON.stringify(notificationPayload), {
+    webpush.sendNotification(subscription, JSON.stringify({
+            notification: notificationPayload
+        }), {
         headers: vapidHeaders,
         TTL: 60 // default for 60s
     })
@@ -169,8 +171,9 @@ function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
                 } else {
                     console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
                     sendNotificationToSubscriber(userObject.push, {
-                        icon: '.assets/icons/icon-96x96.png', // more general for app
+                        icon: '/icons/icon-96x96.png', // more general for app
                         title: '@thx/chat', // more general for app
+                        // TODO: TAG, LANG, SILENT, VIBRATE, ...
                         body: `New message ${senderUserObject ? 'from ' + senderUserObject.user.nickname : ''}`,
                         actions: [
                             { action: 'goto', title: 'OK' }
