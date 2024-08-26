@@ -399,6 +399,7 @@ io.on('connection', (socket) => {
         if (roomExist(appName, roomId)) {
             const room = getRoom(appName, roomId);
             socket.join(room.id);
+            if (!user) user = findUserBySocketId(socket.id);
             addRoomToUser(appName, room.id, user.id);
             room.size = io.sockets.adapter.rooms.get(roomId) ? io.sockets.adapter.rooms.get(roomId).size : 0; // update room size
             callback({
