@@ -231,7 +231,7 @@ io.on('connection', (socket) => {
         const userObject = getUser(appName, user.id);
         if (userObject) { // user exist, reconnect with new socket
             userObject.socket = socket;
-            console.log('...existing user', user);
+            console.log('...existing user, just refresh socket', user);
         } else { // new user
             if (user.id) {
                 USERS[appName][user.id] = {
@@ -294,6 +294,7 @@ io.on('connection', (socket) => {
         const userObject = findUserOfAppBySocketId(appName, socket.id);
         if (userObject) {
             console.log('👋 disconnect user', userObject.user);
+            userObject.socket = null;
         } else {
             console.log('👋 no user with socket', socket.id)
         }
