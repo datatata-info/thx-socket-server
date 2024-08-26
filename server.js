@@ -171,12 +171,14 @@ function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
                 } else {
                     console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
                     sendNotificationToSubscriber(userObject.push, {
-                        icon: '/icons/icon-96x96.png', // more general for app
+                        icon: 'icons/icon-96x96.png', // more general for app
                         title: '@thx/chat', // more general for app
                         // TODO: TAG, LANG, SILENT, VIBRATE, ...
+                        silent: false,
+                        tag: roomId,
                         body: `New message ${senderUserObject ? 'from ' + senderUserObject.user.nickname : ''}`,
                         actions: [
-                            { action: 'goto', title: 'OK' }
+                            { action: 'goto', title: 'Show me' }
                         ],
                         data: {
                             onActionClick: {
