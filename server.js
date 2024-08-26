@@ -178,7 +178,7 @@ function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
                         tag: roomId,
                         body: `New message ${senderUserObject ? 'from ' + senderUserObject.user.nickname : ''}`,
                         actions: [
-                            { action: 'goto', title: 'Show me' }
+                            { action: 'goto', title: 'View' }
                         ],
                         data: {
                             onActionClick: {
