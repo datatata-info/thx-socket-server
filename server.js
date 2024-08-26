@@ -146,7 +146,7 @@ function findUserBySocketId(socketId) {
     for (const appName in USERS) {
         for (const userId in USERS[appName]) {
             const user = USERS[appName][userId];
-            if (user.socket.id === socketId) return user;
+            if (user.socket && user.socket.id === socketId) return user;
         }
     }
     return null;
