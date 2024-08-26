@@ -182,7 +182,10 @@ function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
                         ],
                         data: {
                             onActionClick: {
-                                default: { operation: 'openWindow' },
+                                default: { 
+                                    operation: 'navigateLastFocusedOrOpen',
+                                    url: `/en-US/chat/${roomId}`
+                                },
                                 goto: {
                                     operation: 'navigateLastFocusedOrOpen',
                                     url: `/en-US/chat/${roomId}` // TODO: solve more general for specific app
