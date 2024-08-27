@@ -172,8 +172,8 @@ function broadcastNewMessageNotifications(appOptions, roomId, excludeSocket) {
                 } else {
                     console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
                     sendNotificationToSubscriber(userObject.push, {
-                        icon: appOptions.appIcon, // more general for app
-                        title: appOptions.appTitle, // more general for app
+                        icon: appOptions.appIcon ? appOptions.appIcon : '', // more general for app
+                        title: appOptions.appTitle ? appOptions.appTitle : 'THX', // more general for app
                         // TODO: TAG, LANG, SILENT, VIBRATE, ...
                         silent: false,
                         tag: roomId,
@@ -471,6 +471,7 @@ io.on('connection', (socket) => {
     // send message
     // TODO: sending push notifications on message
     socket.on('send_message', async (roomId, message) => {
+        // TODO: avoid to broadcast stats (!)
         broadcastNewMessageNotifications(appOptions, roomId, socket);
         socket.broadcast.to(roomId).emit('message', message, roomId);
     });
