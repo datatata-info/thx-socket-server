@@ -221,7 +221,7 @@ io.of('/').adapter.on('leave-room', (room, id) => {
 io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
     const appOptions = socket.handshake.query.options;
-    const appName = appOptions.appName;
+    const appName = appOptions ? appOptions.appName : socket.handshake.query.appName;
     // const appName = socket.handshake.query.appName;
     // TODO: appTitle (eg. @thx/chat), appDomain(?), appIconLink, ...
     if (appName) socket.join(appName); // join room for app
