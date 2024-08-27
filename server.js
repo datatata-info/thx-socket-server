@@ -117,19 +117,19 @@ function closeRoom(appName, roomId, publicRoom = false) {
     deleteRoom(appName, roomId);
 }
 
-function sendNotificationToSubscriber(subscription, notificationPayload) {
+function sendNotificationToSubscriber(subscription, notification) {
     const parsedUrl = new URL(subscription.endpoint);
     const audience = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
     // technically, the audience doesn't change between calls, so this can be cached in a non-minimal example
     const vapidHeaders = webpush.getVapidHeaders(
-    audience,
-      `mailto:${process.env.MAILTO}`,
-      process.env.VAPID_PUBLIC_KEY,
-      process.env.VAPID_PRIVATE_KEY,
-      'aes128gcm'
+        audience,
+        `mailto:${process.env.MAILTO}`,
+        process.env.VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY,
+        'aes128gcm'
     );
     webpush.sendNotification(subscription, JSON.stringify({
-            notification: notificationPayload
+            notification: notification // payload
         }), {
         headers: vapidHeaders,
         TTL: 60 // default for 60s
@@ -160,9 +160,10 @@ function findUserOfAppBySocketId(appName, socketId) {
     return null;
 }
 
-function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
+function broadcastNewMessageNotifications(appOptions, roomId, excludeSocket) {
     const senderUserObject = findUserBySocketId(excludeSocket.id);
-    const usersInRoom = getUsersInRoom(appName, roomId);
+    const usersInRoom = getUsersInRoom(appOptions.appName, roomId);
+        // send notification to every user in room, who has a push enabled, except the sender
         for (const userObject of usersInRoom) {
             if (userObject.push) {
                 if (senderUserObject && senderUserObject.user.id === userObject.user.id) {
@@ -171,14 +172,14 @@ function broadcastNewMessageNotifications(appName, roomId, excludeSocket) {
                 } else {
                     console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
                     sendNotificationToSubscriber(userObject.push, {
-                        icon: 'icons/icon-96x96.png', // more general for app
-                        title: '@thx/chat', // more general for app
+                        icon: appOptions.appIcon, // more general for app
+                        title: appOptions.appTitle, // more general for app
                         // TODO: TAG, LANG, SILENT, VIBRATE, ...
                         silent: false,
                         tag: roomId,
                         body: `New message ${senderUserObject ? 'from ' + senderUserObject.user.nickname : ''}`,
                         actions: [
-                            { action: 'goto', title: 'View' }
+                            { action: 'goto', title: 'View Chat' }
                         ],
                         data: {
                             onActionClick: {
@@ -219,7 +220,9 @@ io.of('/').adapter.on('leave-room', (room, id) => {
 
 io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
-    const appName = socket.handshake.query.appName;
+    const appOptions = socket.handshake.query.options;
+    const appName = appOptions.appName;
+    // const appName = socket.handshake.query.appName;
     // TODO: appTitle (eg. @thx/chat), appDomain(?), appIconLink, ...
     if (appName) socket.join(appName); // join room for app
 
@@ -468,7 +471,7 @@ io.on('connection', (socket) => {
     // send message
     // TODO: sending push notifications on message
     socket.on('send_message', async (roomId, message) => {
-        broadcastNewMessageNotifications(appName, roomId, socket);
+        broadcastNewMessageNotifications(appOptions, roomId, socket);
         socket.broadcast.to(roomId).emit('message', message, roomId);
     });
     // 
