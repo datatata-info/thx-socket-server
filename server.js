@@ -222,6 +222,9 @@ io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
     const appOptions = socket.handshake.query.options;
     const appName = appOptions ? appOptions.appName : socket.handshake.query.appName;
+    console.log('appOptions', appOptions);
+    console.log('appName', appName);
+    console.log('socket.handshake.query', socket.handshake.query);
     // const appName = socket.handshake.query.appName;
     // TODO: appTitle (eg. @thx/chat), appDomain(?), appIconLink, ...
     if (appName) socket.join(appName); // join room for app
@@ -275,7 +278,7 @@ io.on('connection', (socket) => {
             });
         }
     });
-    // TODO: sending push notifications on message
+    // register push to user by id
     socket.on('subscribe_push', (user, push, callback = () => {}) => {
         const userObject = getUser(appName, user.id);
         if (userObject) {
