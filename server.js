@@ -221,6 +221,11 @@ io.of('/').adapter.on('leave-room', (room, id) => {
 io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
     const appOptions = socket.handshake.query.options;
+    try {
+        JSON.parse(appOptions);
+    } catch(e) {
+        console.log('cannot parse, typeof appOptions', typeof appOptions);
+    }
     const appName = appOptions ? appOptions.appName : socket.handshake.query.appName;
     console.log('appOptions', appOptions);
     console.log('appName', appOptions['appName']);
