@@ -222,7 +222,7 @@ io.on('connection', (socket) => {
     // console.log('socket.handshake.query', socket.handshake.query);
     const appOptions = socket.handshake.query.options;
     const appName = appOptions ? appOptions.appName : socket.handshake.query.appName;
-    console.log('appOptions', JSON.stringify(appOptions));
+    console.log('appOptions', JSON.parse(appOptions));
     console.log('appName', appName);
     console.log('socket.handshake.query', socket.handshake.query);
     // const appName = socket.handshake.query.appName;
