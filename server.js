@@ -219,6 +219,7 @@ io.of('/').adapter.on('leave-room', (room, id) => {
 });
 
 io.on('connection', (socket) => {
+    console.log('CONNECTION');
     // console.log('socket.handshake.query', socket.handshake.query);
     const appOptions = socket.handshake.query.options;
     let appName;
