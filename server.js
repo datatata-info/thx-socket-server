@@ -223,7 +223,7 @@ io.on('connection', (socket) => {
     const appOptions = socket.handshake.query.options;
     const appName = appOptions ? appOptions.appName : socket.handshake.query.appName;
     console.log('appOptions', appOptions);
-    console.log('appName', appOptions.appName);
+    console.log('appName', appOptions['appName']);
     console.log('socket.handshake.query', socket.handshake.query);
     // const appName = socket.handshake.query.appName;
     // TODO: appTitle (eg. @thx/chat), appDomain(?), appIconLink, ...
