@@ -166,8 +166,8 @@ function broadcastNewMessageNotifications(appOptions, roomId, excludeSocket) {
         // send notification to every user in room, who has a push enabled, except the sender
         for (const userObject of usersInRoom) {
             if (userObject.push) {
-                if (senderUserObject && senderUserObject.user.id === userObject.user.id) {
-                    // do not send notification to sender
+                if (senderUserObject && senderUserObject.user.id === userObject.user.id || userObject.active) {
+                    // do not send notification to sender or active users
                     console.log('DO NOT SEND NOTIFICATION TO SENDER');
                 } else {
                     console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
@@ -256,7 +256,8 @@ io.on('connection', (socket) => {
                 USERS[appName][user.id] = {
                     user: user,
                     socket: socket,
-                    push: null
+                    push: null,
+                    active: true
                 };
             }
         }
@@ -266,7 +267,17 @@ io.on('connection', (socket) => {
     socket.on('logout', (userId) => {
         const userObject = getUser(appName, userId);
         if (userObject) deleteUser(appName, userId);
-    })
+    });
+
+    socket.on('user_active', (userId) => {
+        const userObject = getUser(appName, userId);
+        userObject.active = true;
+    });
+
+    socket.on('user_not_active', (userId) => {
+        const userObject = getUser(appName, userId);
+        userObject.active = false;
+    });
 
     socket.on('has_push', (userId, callback = () => {}) => {
         const userObject = getUser(appName, userId);
