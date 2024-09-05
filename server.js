@@ -271,12 +271,12 @@ io.on('connection', (socket) => {
 
     socket.on('user_active', (userId) => {
         const userObject = getUser(appName, userId);
-        userObject.active = true;
+        if (userObject) userObject.active = true;
     });
 
     socket.on('user_not_active', (userId) => {
         const userObject = getUser(appName, userId);
-        userObject.active = false;
+        if (userObject) userObject.active = false;
     });
 
     socket.on('has_push', (userId, callback = () => {}) => {
