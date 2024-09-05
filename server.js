@@ -175,6 +175,7 @@ function broadcastNewMessageNotifications(appOptions, roomId, excludeSocket) {
                         icon: appOptions.appIcon ? appOptions.appIcon : '', // more general for app
                         title: appOptions.appTitle ? appOptions.appTitle : 'THX', // more general for app
                         // TODO: TAG, LANG, SILENT, VIBRATE, ...
+                        badge: appOptions.badge ? appOptions.badge : '',
                         silent: false,
                         tag: roomId,
                         body: `New message ${senderUserObject ? 'from ' + senderUserObject.user.nickname : ''}`,
