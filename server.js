@@ -168,7 +168,7 @@ function broadcastNewMessageNotifications(appOptions, roomId, excludeSocket) {
             if (userObject.push) {
                 if (senderUserObject && senderUserObject.user.id === userObject.user.id || userObject.active) {
                     // do not send notification to sender or active users
-                    console.log('DO NOT SEND NOTIFICATION TO SENDER');
+                    console.log('DO NOT SEND NOTIFICATION TO SENDER AND ACTIVE APPS');
                 } else {
                     console.log(`🍆🍆🍆🍆🍆 SEND NOTIFICATION TO USER ${userObject.user.id}`);
                     sendNotificationToSubscriber(userObject.push, {
