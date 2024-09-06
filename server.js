@@ -309,12 +309,28 @@ io.on('connection', (socket) => {
             userObject.push = push;
             callback({
                 success: true,
-                message: 'PushSubscribtion successfully set.'
+                message: 'PushSubscription successfuly set.'
             })
         } else {
             callback({
                 success: false,
                 message: `No user with id ${user.id} logged in.`
+            })
+        }
+    });
+    // unregister push for user
+    socket.on('unsubscribe_push', (userId, callback = () => {}) => {
+        const userObject = getUser(appName, userId);
+        if (userObject) {
+            userObject.push = null;
+            callback({
+                success: true,
+                message: 'PushSubscription successfuly removed.'
+            })
+        } else {
+            callback({
+                success: false,
+                message: `No user with id ${userId} logged in.`
             })
         }
     });
